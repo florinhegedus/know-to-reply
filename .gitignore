@@ -1,3 +1,5 @@
 images/*
 .env
 .vscode/*
+*.pyc
+__pycache__/*

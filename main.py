@@ -3,6 +3,7 @@ from fastapi import FastAPI, UploadFile, File, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from langchain.prompts import ChatPromptTemplate
 from openai import OpenAI
 from dotenv import load_dotenv
 from io import BytesIO
@@ -22,6 +23,17 @@ if not in_container:
 # Set your OpenAI API key
 api_key = os.getenv('OPENAI_API_KEY')  # Recommended to use environment variables
 client = OpenAI(api_key=api_key)
+
+
+PROMPT_TEMPLATE = """
+Respond to the question based on the following rules:
+- only respond to questions related to getting help on conversations
+- respond in the language of the question and/or language in the provided screenshots
+
+---
+
+Help the user achieve what he want: {question}
+"""
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -58,6 +70,10 @@ async def chat(prompt: str = Form(...), file: UploadFile = File(None)):
         # Open the image using PIL and BytesIO
         image = Image.open(BytesIO(contents))
 
+        # Convert image to RGB if it has an alpha channel (RGBA)
+        if image.mode == "RGBA":
+            image = image.convert("RGB")
+
         # Convert the image to base64
         buffered = BytesIO()
         image.save(buffered, format="JPEG")  # You can change format if needed
@@ -68,6 +84,9 @@ async def chat(prompt: str = Form(...), file: UploadFile = File(None)):
 
         # Prepare the image in the data URI format required for the OpenAI API
         image_data_uri = f"data:image/jpeg;base64,{base64_image}"
+
+    prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
+    prompt = prompt_template.format(question=prompt)
 
     # Call OpenAI API
     response = client.chat.completions.create(
