@@ -2,14 +2,74 @@
 <html>
 <head>
     <title>Chatbot Interface</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <script>
+        async function submitForm(event) {
+            event.preventDefault(); // Prevent the default form submission
+            const form = event.target;
+            const formData = new FormData(form);
+
+            // Show loading animation
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('response').innerHTML = '';
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                // Hide loading animation
+                document.getElementById('loading').style.display = 'none';
+
+                if (response.ok) {
+                    // Display the response
+                    document.getElementById('response').innerHTML = result.reply;
+                } else {
+                    // Handle errors
+                    document.getElementById('response').innerHTML = 'Error: ' + result.detail;
+                }
+            } catch (error) {
+                // Hide loading animation
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('response').innerHTML = 'Error: ' + error.message;
+            }
+        }
+    </script>
 </head>
 <body>
     <h1>Chat with GPT</h1>
-    <form action="/chat" enctype="multipart/form-data" method="post">
+    <form id="chat-form" enctype="multipart/form-data" method="post" onsubmit="submitForm(event);">
         <textarea name="prompt" rows="4" cols="50" placeholder="Enter your prompt here"></textarea><br><br>
         <input type="file" name="file"><br><br>
         <input type="submit" value="Send">
     </form>
+
+    <!-- Loading animation -->
+    <div id="loading" style="display:none;">
+        <div class="spinner"></div>
+    </div>
+
+    <style>
+    .spinner {
+    border: 16px solid #f3f3f3; /* Light gray */
+    border-top: 16px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 2s linear infinite;
+    margin: auto; /* Center the spinner */
+    }
+
+    @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+    }
+    </style>
+
+
+    <!-- Response area -->
+    <div id="response"></div>
 </body>
 </html>

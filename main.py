@@ -1,6 +1,5 @@
-# main.py
 from fastapi import FastAPI, UploadFile, File, Form, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from langchain.prompts import ChatPromptTemplate
@@ -10,7 +9,6 @@ from io import BytesIO
 from PIL import Image
 import os
 import base64
-
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -24,7 +22,6 @@ if not in_container:
 api_key = os.getenv('OPENAI_API_KEY')  # Recommended to use environment variables
 client = OpenAI(api_key=api_key)
 
-
 PROMPT_TEMPLATE = """
 Respond to the question based on the following rules:
 - only respond to questions related to getting help on conversations
@@ -35,35 +32,13 @@ Respond to the question based on the following rules:
 Help the user achieve what he want: {question}
 """
 
-
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-
-@app.get("/", response_class=HTMLResponse)
-async def index():
-    # Simple HTML form
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Chatbot Interface</title>
-    </head>
-    <body>
-        <h1>Chat with GPT</h1>
-        <form action="/chat" enctype="multipart/form-data" method="post">
-            <textarea name="prompt" rows="4" cols="50" placeholder="Enter your prompt here"></textarea><br><br>
-            <input type="file" name="file"><br><br>
-            <input type="submit" value="Send">
-        </form>
-    </body>
-    </html>
-    """
-
-
 @app.post("/chat")
 async def chat(prompt: str = Form(...), file: UploadFile = File(None)):
+    image_data_uri = None
     if file:
         # Read and process the image
         contents = await file.read()
@@ -88,22 +63,24 @@ async def chat(prompt: str = Form(...), file: UploadFile = File(None)):
     prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
     prompt = prompt_template.format(question=prompt)
 
+    # Prepare the messages
+    messages = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
+    if image_data_uri:
+        messages[0]["content"].append({
+            "type": "image_url",
+            "image_url": {"url": image_data_uri}
+        })
+
     # Call OpenAI API
-    response = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[{"role": "user", 
-                            "content": [{"type": "text",
-                                            "text": prompt},{
-                                            "type": "image_url",
-                                            "image_url": {"url": image_data_uri}}
-                                        ]}],
-                    stream=False,
-                )
-
-    reply = response.choices[0].message.content
-
-    # Return the response as HTML
-    return HTMLResponse(f"<h2>Response:</h2><p>{reply}</p>")
-
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            stream=False,
+        )
+        reply = response.choices[0].message.content
+        return {"reply": reply}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
