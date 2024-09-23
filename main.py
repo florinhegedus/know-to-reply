@@ -24,13 +24,18 @@ client = OpenAI(api_key=api_key)
 
 PROMPT_TEMPLATE = """
 Respond to the question based on the following rules:
-- only respond to questions related to getting help on conversations
-- respond in the language of the question and/or language in the provided screenshots
+- Only respond to questions related to getting help on conversations.
+- Respond in the language of the question and/or language in the provided screenshots.
+- Enclose any examples or suggestions that the user might want to copy in `<copy>` tags.
+- Do not use backticks or code blocks in your response.
+- Format lists using numbers and periods (e.g., 1. Example).
 
 ---
 
-Help the user achieve what he want: {question}
+Help the user achieve what they want: {question}
 """
+
+
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):

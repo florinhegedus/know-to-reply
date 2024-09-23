@@ -76,8 +76,8 @@
         }
 
         .spinner {
-            border: 8px solid #f3f3f3; /* Light grey */
-            border-top: 8px solid #3498db; /* Blue */
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
             border-radius: 50%;
             width: 60px;
             height: 60px;
@@ -90,7 +90,31 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Mobile responsiveness */
+        .copiable {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .copiable span {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .copiable button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .copiable button:hover {
+            background-color: #2980b9;
+        }
+
         @media (max-width: 600px) {
             .container {
                 width: 100%;
@@ -108,11 +132,10 @@
     </style>
     <script>
         async function submitForm(event) {
-            event.preventDefault(); // Prevent the default form submission
+            event.preventDefault();
             const form = event.target;
             const formData = new FormData(form);
 
-            // Show loading animation
             document.getElementById('loading').style.display = 'block';
             document.getElementById('response').innerHTML = '';
 
@@ -124,23 +147,63 @@
 
                 const result = await response.json();
 
-                // Hide loading animation
                 document.getElementById('loading').style.display = 'none';
 
                 if (response.ok) {
-                    // Display the response
-                    document.getElementById('response').innerHTML = `<p>${result.reply}</p>`;
+                    const processedReply = processResponse(result.reply);
+                    document.getElementById('response').innerHTML = processedReply;
                 } else {
-                    // Handle errors
                     document.getElementById('response').innerHTML = `<p>Error: ${result.detail}</p>`;
                 }
             } catch (error) {
-                // Hide loading animation
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('response').innerHTML = `<p>Error: ${error.message}</p>`;
             }
         }
+
+        function processResponse(responseText) {
+            const copyRegex = /<copy>([\s\S]*?)<\/copy>/g;
+
+            const processedText = responseText.replace(copyRegex, (match, p1) => {
+                const displayText = escapeHtml(p1.trim());
+                const attributeText = escapeAttribute(p1.trim());
+                return `
+                    <div class="copiable">
+                        <span>${displayText}</span>
+                        <button onclick="copyText(this)" data-copy-text="${attributeText}">Copy</button>
+                    </div>
+                `;
+            });
+
+            return processedText;
+        }
+
+        function copyText(button) {
+            const text = button.getAttribute('data-copy-text');
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Text copied to clipboard!');
+            }, (err) => {
+                alert('Failed to copy text: ' + err);
+            });
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+        }
+
+        function escapeAttribute(s) {
+            return s.replace(/&/g, '&amp;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;')
+                    .replace(/`/g, '&#96;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+        }
     </script>
+
 </head>
 <body>
     <div class="container">
