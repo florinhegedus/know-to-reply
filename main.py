@@ -79,7 +79,7 @@ async def chat(prompt: str = Form(...), file: UploadFile = File(None)):
             stream=False,
         )
         reply = response.choices[0].message.content
-        return {"reply": reply}
+        return {"reply": f"<p>{reply}</p>"}
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 

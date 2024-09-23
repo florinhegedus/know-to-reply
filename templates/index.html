@@ -2,6 +2,110 @@
 <html>
 <head>
     <title>Chatbot Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 50px auto;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #chat-form {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            width: 100%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            resize: vertical;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        input[type="file"] {
+            margin-bottom: 20px;
+        }
+
+        input[type="submit"] {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+
+        #loading {
+            display: none;
+            margin-top: 20px;
+        }
+
+        #response {
+            margin-top: 30px;
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            width: 100%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            word-wrap: break-word;
+        }
+
+        .spinner {
+            border: 8px solid #f3f3f3; /* Light grey */
+            border-top: 8px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            .container {
+                width: 100%;
+                margin: 20px auto;
+            }
+
+            #chat-form, #response {
+                padding: 20px;
+            }
+
+            textarea {
+                height: 100px;
+            }
+        }
+    </style>
     <script>
         async function submitForm(event) {
             event.preventDefault(); // Prevent the default form submission
@@ -25,51 +129,35 @@
 
                 if (response.ok) {
                     // Display the response
-                    document.getElementById('response').innerHTML = result.reply;
+                    document.getElementById('response').innerHTML = `<p>${result.reply}</p>`;
                 } else {
                     // Handle errors
-                    document.getElementById('response').innerHTML = 'Error: ' + result.detail;
+                    document.getElementById('response').innerHTML = `<p>Error: ${result.detail}</p>`;
                 }
             } catch (error) {
                 // Hide loading animation
                 document.getElementById('loading').style.display = 'none';
-                document.getElementById('response').innerHTML = 'Error: ' + error.message;
+                document.getElementById('response').innerHTML = `<p>Error: ${error.message}</p>`;
             }
         }
     </script>
 </head>
 <body>
-    <h1>Chat with GPT</h1>
-    <form id="chat-form" enctype="multipart/form-data" method="post" onsubmit="submitForm(event);">
-        <textarea name="prompt" rows="4" cols="50" placeholder="Enter your prompt here"></textarea><br><br>
-        <input type="file" name="file"><br><br>
-        <input type="submit" value="Send">
-    </form>
+    <div class="container">
+        <h1>Chat with GPT</h1>
+        <form id="chat-form" enctype="multipart/form-data" method="post" onsubmit="submitForm(event);">
+            <textarea name="prompt" placeholder="Enter your prompt here"></textarea><br>
+            <input type="file" name="file"><br>
+            <input type="submit" value="Send">
+        </form>
 
-    <!-- Loading animation -->
-    <div id="loading" style="display:none;">
-        <div class="spinner"></div>
+        <!-- Loading animation -->
+        <div id="loading">
+            <div class="spinner"></div>
+        </div>
+
+        <!-- Response area -->
+        <div id="response"></div>
     </div>
-
-    <style>
-    .spinner {
-    border: 16px solid #f3f3f3; /* Light gray */
-    border-top: 16px solid #3498db; /* Blue */
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    animation: spin 2s linear infinite;
-    margin: auto; /* Center the spinner */
-    }
-
-    @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-    }
-    </style>
-
-
-    <!-- Response area -->
-    <div id="response"></div>
 </body>
 </html>
