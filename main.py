@@ -9,6 +9,12 @@ from io import BytesIO
 from PIL import Image
 import os
 import base64
+import logging
+
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -24,11 +30,12 @@ client = OpenAI(api_key=api_key)
 
 PROMPT_TEMPLATE = """
 Respond to the question based on the following rules:
-- Only respond to questions related to getting help on conversations.
+- Only respond to questions related to getting help on conversations, specify if this is not the case
 - Respond in the language of the question and/or language in the provided screenshots.
 - Enclose any examples or suggestions that the user might want to copy in `<copy>` tags.
-- Do not use backticks or code blocks in your response.
-- Format lists using numbers and periods (e.g., 1. Example).
+- Do not use backticks
+- Do not use double quotation marks
+- Do not use code blocks
 
 ---
 
@@ -84,7 +91,8 @@ async def chat(prompt: str = Form(...), file: UploadFile = File(None)):
             stream=False,
         )
         reply = response.choices[0].message.content
-        return {"reply": f"<p>{reply}</p>"}
+        logger.info(reply)
+        return {"reply": reply}
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
