@@ -36,6 +36,13 @@
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
         }
 
+        .wrapper {
+            display: flex;
+            justify-content: center; /* Center horizontally */
+            align-items: center;     /* Center vertically */
+            /* height: 100vh;           /* Full viewport height */
+        }
+
         textarea {
             width: 100%;
             height: 140px;
@@ -178,7 +185,7 @@
 
             const processedText = responseText.replace(copyRegex, (match, p1) => {
                 const displayText = escapeHtml(p1.trim());
-                const attributeText = escapeAttribute(p1.trim());
+                const attributeText = p1.trim();  // Do not escape this for the 'data-copy-text' attribute
                 return `
                     <div class="copiable">
                         <span>${displayText}</span>
@@ -189,6 +196,7 @@
 
             return processedText;
         }
+
 
         function copyText(button) {
             const text = button.getAttribute('data-copy-text');
@@ -220,7 +228,10 @@
     <div class="container">
         <h1>Chat with GPT</h1>
         <form id="chat-form" enctype="multipart/form-data" method="post" onsubmit="submitForm(event);">
-            <textarea name="prompt" placeholder="Enter your prompt here"></textarea><br>
+            <div class="wrapper">
+                <textarea name="prompt" placeholder="Enter your prompt here"></textarea>
+            </div>
+            <br>
             <input type="file" name="file"><br>
             <input type="submit" value="Send">
         </form>
