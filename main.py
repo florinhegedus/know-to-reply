@@ -29,17 +29,20 @@ api_key = os.getenv('OPENAI_API_KEY')  # Recommended to use environment variable
 client = OpenAI(api_key=api_key)
 
 PROMPT_TEMPLATE = """
+The purpose of this query is you to help me with a conversation.
 Respond to the question based on the following rules:
 - Only respond to questions related to getting help on conversations, specify if this is not the case
-- Respond in the language of the question and/or language in the provided screenshots.
-- Enclose any examples or suggestions that the user might want to copy in `<copy>` tags.
+- Respond in the language of the provided screenshots.
+- Enclose any examples or suggestions that the user might want to copy between `<copy>` `</copy>` tags.
 - Do not use backticks
 - Do not use double quotation marks
 - Do not use code blocks
+- Do not write a response twice
 
 ---
 
-Help the user achieve what they want: {question}
+This is what the user wants: {question}
+Remember to put the examples to be copied between `<copy>` `</copy>` tags.
 """
 
 
